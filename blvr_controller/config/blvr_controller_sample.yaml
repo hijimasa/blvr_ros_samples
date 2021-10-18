@@ -1,0 +1,6 @@
+blvr_controller:
+  motor_name: ["left_wheel_joint", "right_wheel_joint"]
+  motor_direction: [1, -1]
+  device_name: "/dev/ttyUSB0"
+  gear_ratio:  50
+  encoder_resolution: 30

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+  <arg name="rvizconfig" default="$(find blvr_sample_robot_description)/config/robot_description.rviz"/>
+
+  <rosparam file="$(find blvr_sample_robot_description)/config/robot_control_config.yaml" command="load" ns="/blvr_sample_robot"/>
+
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <arg name="paused" value="false"/>
+    <arg name="use_sim_time" value="true"/>
+    <arg name="gui" value="true"/>
+    <arg name="headless" value="false"/>
+    <arg name="debug" value="false"/>
+  </include>
+
+  <include file="$(find blvr_sample_robot_description)/launch/robot.launch"/>
+
+  <node name="controller_spawner" pkg="controller_manager"
+        type="spawner" output="screen"
+        args="joint_state_controller diff_drive_controller" ns="/blvr_sample_robot">
+  </node>
+
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(arg rvizconfig)" required="true"/>
+</launch>

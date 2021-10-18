@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>blvr_sample_robot_launcher</name>
+  <version>1.0.0</version>
+  <description>This is package to show how to launch robot with blvr motor</description>
+
+  <maintainer email="hijikata@daihen.co.jp">Masaaki Hijikata</maintainer>
+  <license>Apache 2.0</license>
+  <url type="repository">https://github.com/hijimasa/blvr_ros_samples.git</url>
+
+  <author email="hijikata@daihen.co.jp">Masaaki Hijikata</author>
+  <author email="takahashi@ieat-fresh.com">Chris Takahashi</author>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <exec_depend>xacro</exec_depend>
+  <exec_depend>controller_manager</exec_depend>
+  <exec_depend>joint_state_controller</exec_depend>
+  <exec_depend>diff_drive_controller</exec_depend>
+  <exec_depend>robot_state_publisher</exec_depend>
+  <exec_depend>rviz</exec_depend>
+</package>
+

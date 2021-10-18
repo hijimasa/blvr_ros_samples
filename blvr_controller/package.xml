@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>blvr_controller</name>
+  <version>1.0.0</version>
+  <description>This is node to control blvr motor</description>
+
+  <maintainer email="hijikata@daihen.co.jp">Masaaki Hijikata</maintainer>
+  <license>Apache 2.0</license>
+  <url type="repository">https://github.com/hijimasa/blvr_ros_samples.git</url>
+
+  <author email="hijikata@daihen.co.jp">Masaaki Hijikata</author>
+  <author email="takahashi@ieat-fresh.com">Chris Takahashi</author>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>roscpp</build_depend>
+  <build_depend>controller_manager</build_depend>
+  <build_depend>hardware_interface</build_depend>
+  <build_export_depend>roscpp</build_export_depend>
+  <build_export_depend>controller_manager</build_export_depend>
+  <build_export_depend>hardware_interface</build_export_depend>
+  <exec_depend>roscpp</exec_depend>
+  <exec_depend>controller_manager</exec_depend>
+  <exec_depend>hardware_interface</exec_depend>
+</package>

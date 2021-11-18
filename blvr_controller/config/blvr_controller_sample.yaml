@@ -3,4 +3,4 @@ blvr_controller:
   motor_direction: [1, -1]
   device_name: "/dev/ttyUSB0"
   gear_ratio:  50
-  encoder_resolution: 30
+  encoder_resolution: 6000

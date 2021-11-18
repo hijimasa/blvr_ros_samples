@@ -1,6 +1,7 @@
 #include <string>
 #include <ros/package.h>
 #include <blvr_controller/blvr_interface.h>
+#include <blvr_controller/blvr_comunicator.h>
 
 BlvrDriveRobotHW::BlvrDriveRobotHW()
 {
@@ -23,6 +24,7 @@ BlvrDriveRobotHW::BlvrDriveRobotHW()
   motor_num_ = motor_names_.size();
 
   joint_info_.resize(motor_num_);
+  prev_step_.resize(motor_num_);
   for(size_t i = 0; i < motor_num_; i++)
   {
     hardware_interface::JointStateHandle state_handle(motor_names_[i], &(joint_info_[i].pos_), &(joint_info_[i].vel_), &(joint_info_[i].eff_));
@@ -64,9 +66,19 @@ BlvrDriveRobotHW::read()
                 __FILE__, __func__, __LINE__, (int)i);
     } 
     //RCLCPP_INFO(rclcpp::get_logger("BlvrDriver"), "Got position %.5f, velocity %.5f for joint %d!", position_states_[i], velocity_states_[i], i);
+    int step, diff_step;
+    serial_port_->readStep(i+1, &step);
+    diff_step = step - prev_step_[i];
+    joint_info_[i].pos_ = static_cast<double>(motor_directions_[i] * diff_step) * 2.0 * M_PI / gear_ratio_ / encoder_resolution_;
+    prev_step_[i] = step;
+
     int rpm = 0;
     serial_port_->readRpm(i+1, &rpm);
     joint_info_[i].vel_ = static_cast<double>(motor_directions_[i] * rpm) * 2.0 * M_PI / gear_ratio_ / 60.0;
+
+    int torque = 0;
+    serial_port_->readTorque(i+1, &torque);
+    joint_info_[i].eff_ = static_cast<double>(motor_directions_[i] * torque) / 1000.0 * BlvrComunicator::BLVR_RATED_TORQUE * gear_ratio_;
   }
 
 }

@@ -63,6 +63,7 @@ private:
   size_t motor_num_;
   std::vector<std::string> motor_names_;
   std::vector<int> motor_directions_;
+  std::vector<int> prev_step_;
   std::string device_name_;
   double gear_ratio_;
   double encoder_resolution_;

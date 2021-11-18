@@ -615,6 +615,142 @@ BlvrComunicator::readAlarm(int ch, int *alarm)
 }
 
 /**
+ * @fn readStep
+ * 
+ */
+int
+BlvrComunicator::readStep(int ch, int *step)
+{
+  unsigned char query[MESSAGE_BUF_SIZE], response[MESSAGE_BUF_SIZE], c;
+  unsigned short query_crc, response_crc;
+  int write_status, read_status, wait_counter;
+  int response_length;
+
+  int flush_status = 0;
+
+  flush_status = tcflush(blvr_port, TCIOFLUSH);
+  if( flush_status < 0 )
+  {
+    printf("flush status %d\n", flush_status);
+  }
+
+  query[0] = (unsigned char)ch;
+  query[1] = 0x03;
+  query[2] = 0x00;
+  query[3] = 0xCC;
+  query[4] = 0x00;
+  query[5] = 0x02;
+
+  query_crc = makeCrc16( query, 6);
+  query[6] = (unsigned char)( query_crc & 0xff);
+  query[7] = (unsigned char)( query_crc >> (8 * 1) & 0xff);
+
+  write_status = write(blvr_port, query, 8);
+
+  if( write_status < 8)
+  {
+    fprintf(stderr, "%s:%s:%d: write query is failed (ch: %d)\n", __FILE__, __func__, __LINE__, ch);
+    return -1;
+  }
+
+  if( query[0] == 0x00) // query is broadcast. NO responce.
+  {
+    nanosleep( &BROADCAST_DELAY, NULL);
+    return 0;
+  }
+
+  nanosleep ( &BROADCAST_DELAY, NULL);
+
+  read_status  = 0;
+  wait_counter = 0;
+  while ( read_status < 2 )
+  {
+    if(read(blvr_port, &c, 1) < 1 )
+    {
+      if( wait_counter > READ_TIMEOUT)
+      {
+        fprintf(stderr, "%s:%s:%d: read response timeout. (ch: %d, read_status:%d)\n", __FILE__, __func__, __LINE__, ch, read_status);
+        return -1;
+      }
+      wait_counter ++;
+      nanosleep(&READ_RETRY_DELAY, NULL);
+    }
+    else
+    {
+      response[read_status] = c;
+      //printf("read char = %02x\n", c);
+      read_status++;
+      nanosleep(&CHARACTER_DELAY, NULL);
+    }
+  }
+
+  //printf("read 2 char (read_status = %d) res[0]:%02x res[1]:%02x \n",
+                                                      //read_status, response[0], response[1]);
+
+  if(response[1] == 0x83)
+  {
+    response_length = 5;
+  }
+  else
+  {
+    response_length = 9;
+  }
+
+  while (read_status < response_length)
+  {
+    if(read(blvr_port, &c, 1) < 1)
+    {
+      if(wait_counter > READ_TIMEOUT)
+      {
+        fprintf(stderr, "%s:%s:%d: read respons timeout. (ch: %02x, response[0]: %02x response[1]: %02x)\n",
+                          __FILE__, __func__, __LINE__, ch, response[0], response[1]);
+        return -1;
+      }
+      wait_counter++;
+      nanosleep(&CHARACTER_DELAY, NULL);
+    }
+    else
+    {
+      response[read_status] = c;
+      read_status++;
+      wait_counter = 0;
+     // printf("read char %d\n", read_status);
+    }
+    nanosleep(&CHARACTER_DELAY, NULL);
+  }
+
+  response_crc = makeCrc16(response, read_status-2);
+  if(response[read_status - 2] != (unsigned char)(response_crc&0xff) || response[read_status - 1] != (unsigned char)(response_crc >> (8 * 1) & 0xff))
+  {
+    fprintf(stderr, "%s:%s:%d: responce crc error. crc_raw = %02x, response[read_status-2] = %02x, crc_high = %02x, response[read_status-1] = %02x\n",
+                      __FILE__, __func__, __LINE__, (unsigned char)(response_crc & 0xff), response[read_status-2], (unsigned char)(response_crc >> (8 *1) & 0xff), response[read_status-1] );
+    return -1;
+  }
+
+  if(response[1] == 0x90)
+  {
+    fprintf(stderr, "%s:%s:%d: Getexception response. (exception code: %02x, data: %02x)\n", __FILE__, __func__, __LINE__, response[1], response[2]);
+    return -1;
+  }
+
+  if(response[2] != 0x04)
+  {
+    fprintf(stderr, "%s:%s:%d: Byte Length Error. (Byte Lenght: %02x)\n", __FILE__, __func__, __LINE__, response[2]);
+    tcflush(blvr_port, TCIFLUSH);
+    return -1;
+  }
+  
+  unsigned short high_data, low_data;
+
+  high_data = (response[3] << 8) + response[4];
+  low_data  = (response[5] << 8) + response[6];
+  *step = (high_data << 16) + low_data;
+
+  return 0;
+
+}
+
+/**
  * @fn readRpm
  * 
  */
